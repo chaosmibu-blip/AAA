@@ -72,6 +72,7 @@
   let isFormOpen = false;
   let editingCommandId = null;
   let isDragging = false;
+  let isPointerDown = false;
   let dragStartX = 0;
   let dragStartY = 0;
   let ballX = 0;
@@ -258,6 +259,7 @@
   function onDragStart(e) {
     e.preventDefault();
     isDragging = false;
+    isPointerDown = true;
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     dragStartX = clientX - ballX;
@@ -293,6 +295,8 @@
 
   // 拖動結束
   function onDragEnd(e) {
+    if (!isPointerDown) return;
+
     const ball = document.getElementById("cmd-helper-ball");
     ball.style.cursor = "grab";
 
@@ -308,6 +312,7 @@
     dragStartX = 0;
     dragStartY = 0;
     isDragging = false;
+    isPointerDown = false;
   }
 
   // 吸附到邊緣
