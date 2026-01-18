@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>指令小幫手 - 測試頁</title>
+  <link rel="stylesheet" href="content.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: white;
+    }
+
+    .demo-content {
+      padding: 60px 20px 100px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .subtitle {
+      text-align: center;
+      opacity: 0.9;
+      margin-bottom: 40px;
+      font-size: 16px;
+    }
+
+    .instruction-card {
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .instruction-card h3 {
+      font-size: 18px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .instruction-card p {
+      opacity: 0.9;
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    .instruction-card ul {
+      margin-top: 12px;
+      padding-left: 20px;
+      opacity: 0.9;
+      line-height: 1.8;
+    }
+
+    .arrow {
+      position: fixed;
+      bottom: 100px;
+      right: 80px;
+      font-size: 40px;
+      animation: bounce 1s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(10px); }
+    }
+
+    .note {
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 14px;
+      line-height: 1.6;
+      margin-top: 30px;
+    }
+
+    .note strong {
+      display: block;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-content">
+    <h1>指令小幫手</h1>
+    <p class="subtitle">快速複製常用指令的懸浮球工具</p>
+
+    <div class="instruction-card">
+      <h3>👆 如何使用</h3>
+      <ul>
+        <li>點擊右下角的灰色懸浮球</li>
+        <li>選擇分類標籤篩選指令</li>
+        <li>點擊指令即可複製</li>
+        <li>點擊 + 新增自訂指令</li>
+      </ul>
+    </div>
+
+    <div class="instruction-card">
+      <h3>✋ 拖動懸浮球</h3>
+      <p>按住懸浮球可以拖動到任意位置，放開後會自動吸附到螢幕左右邊緣。</p>
+    </div>
+
+    <div class="instruction-card">
+      <h3>💾 資料儲存</h3>
+      <p>你新增的指令會自動儲存在瀏覽器中，下次打開還會保留。</p>
+    </div>
+
+    <div class="note">
+      <strong>📱 測試說明</strong>
+      這是一個獨立的測試頁面，讓你可以在手機上預覽懸浮球的效果。正式版本會以瀏覽器擴充的形式，在所有網頁上顯示。
+    </div>
+  </div>
+
+  <div class="arrow">👉</div>
+
+  <script>
+    // 模擬 chrome.storage API（測試用）
+    window.chrome = {
+      storage: {
+        local: {
+          get: function(keys, callback) {
+            const result = {};
+            keys.forEach(key => {
+              const value = localStorage.getItem('cmd_' + key);
+              if (value) {
+                result[key] = JSON.parse(value);
+              }
+            });
+            if (callback) callback(result);
+            return Promise.resolve(result);
+          },
+          set: function(items, callback) {
+            Object.keys(items).forEach(key => {
+              localStorage.setItem('cmd_' + key, JSON.stringify(items[key]));
+            });
+            if (callback) callback();
+            return Promise.resolve();
+          }
+        }
+      }
+    };
+  </script>
+  <script src="content.js"></script>
+</body>
+</html>
