@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "指令小幫手",
+  "description": "快速複製常用指令的懸浮球工具",
+  "version": "1.0.0",
+  "permissions": ["storage", "clipboardWrite"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_end"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
