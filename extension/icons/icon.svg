@@ -1,0 +1,14 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景圓形 -->
+  <circle cx="64" cy="64" r="60" fill="#6B7280"/>
+
+  <!-- 文件圖標 -->
+  <path d="M76 28H52C48.6863 28 46 30.6863 46 34V94C46 97.3137 48.6863 100 52 100H86C89.3137 100 92 97.3137 92 94V44L76 28Z" fill="white"/>
+  <path d="M76 28V44H92" fill="white"/>
+  <path d="M76 28V44H92" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- 文字線條 -->
+  <line x1="56" y1="60" x2="82" y2="60" stroke="#6B7280" stroke-width="4" stroke-linecap="round"/>
+  <line x1="56" y1="72" x2="82" y2="72" stroke="#6B7280" stroke-width="4" stroke-linecap="round"/>
+  <line x1="56" y1="84" x2="72" y2="84" stroke="#6B7280" stroke-width="4" stroke-linecap="round"/>
+</svg>
