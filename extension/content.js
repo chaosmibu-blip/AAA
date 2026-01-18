@@ -2,6 +2,8 @@
 (function () {
   "use strict";
 
+  console.log("🎯 指令小幫手：正在載入...");
+
   // 預設分類
   const DEFAULT_CATEGORIES = [
     { id: "all", name: "全部", icon: "folder" },
@@ -749,9 +751,15 @@
 
   // 初始化
   function init() {
-    createDOM();
-    loadBallPosition();
-    loadCommands();
+    console.log("🎯 指令小幫手：初始化中...");
+    try {
+      createDOM();
+      loadBallPosition();
+      loadCommands();
+      console.log("🎯 指令小幫手：初始化完成！");
+    } catch (error) {
+      console.error("🎯 指令小幫手錯誤：", error);
+    }
   }
 
   // 等待 DOM 載入完成
