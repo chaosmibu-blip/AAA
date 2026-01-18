@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>指令小幫手</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 320px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #F9FAFB;
+    }
+
+    .header {
+      padding: 16px;
+      background: white;
+      border-bottom: 1px solid #E5E7EB;
+    }
+
+    .header h1 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .content {
+      padding: 16px;
+    }
+
+    .info-card {
+      background: white;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .info-card h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+
+    .info-card p {
+      font-size: 13px;
+      color: #6B7280;
+      line-height: 1.5;
+    }
+
+    .info-card ul {
+      font-size: 13px;
+      color: #6B7280;
+      line-height: 1.8;
+      padding-left: 20px;
+    }
+
+    .ball-preview {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .ball-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #6B7280;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ball-icon svg {
+      width: 20px;
+      height: 20px;
+      stroke: white;
+    }
+
+    .ball-text {
+      font-size: 13px;
+      color: #374151;
+    }
+
+    .footer {
+      padding: 12px 16px;
+      border-top: 1px solid #E5E7EB;
+      background: white;
+      text-align: center;
+    }
+
+    .footer a {
+      font-size: 12px;
+      color: #6B7280;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      color: #374151;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>指令小幫手</h1>
+  </div>
+
+  <div class="content">
+    <div class="info-card">
+      <div class="ball-preview">
+        <div class="ball-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+          </svg>
+        </div>
+        <span class="ball-text">懸浮球已在網頁上顯示</span>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <h3>使用方式</h3>
+      <ul>
+        <li>點擊懸浮球開啟指令面板</li>
+        <li>拖動懸浮球移動位置</li>
+        <li>點擊指令即可複製</li>
+        <li>點擊 + 新增自訂指令</li>
+      </ul>
+    </div>
+
+    <div class="info-card">
+      <h3>快速說明</h3>
+      <p>懸浮球會自動吸附到螢幕左右邊緣。你的指令會自動儲存，下次開啟瀏覽器時還會保留。</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <a href="#">v1.0.0</a>
+  </div>
+</body>
+</html>

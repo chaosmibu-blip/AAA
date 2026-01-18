@@ -1,0 +1,322 @@
+/* 懸浮球容器 */
+#cmd-helper-root {
+  position: fixed;
+  z-index: 2147483647;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* 懸浮球 */
+#cmd-helper-ball {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #6B7280;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  opacity: 0.85;
+  user-select: none;
+}
+
+#cmd-helper-ball:hover {
+  transform: scale(1.05);
+  opacity: 1;
+}
+
+#cmd-helper-ball:active {
+  cursor: grabbing;
+  transform: scale(1.1);
+}
+
+#cmd-helper-ball svg {
+  width: 24px;
+  height: 24px;
+  fill: white;
+}
+
+/* 指令面板 */
+#cmd-helper-panel {
+  position: absolute;
+  width: 320px;
+  max-height: 450px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  display: none;
+  flex-direction: column;
+}
+
+#cmd-helper-panel.open {
+  display: flex;
+}
+
+#cmd-helper-panel.position-left {
+  right: 60px;
+  top: 0;
+}
+
+#cmd-helper-panel.position-right {
+  left: 60px;
+  top: 0;
+}
+
+/* 面板頭部 */
+.cmd-panel-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #E5E7EB;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cmd-panel-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.cmd-panel-add-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: #F3F4F6;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.cmd-panel-add-btn:hover {
+  background: #E5E7EB;
+}
+
+/* 分類標籤 */
+.cmd-category-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  overflow-x: auto;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.cmd-category-tab {
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: none;
+  background: #F3F4F6;
+  color: #6B7280;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.cmd-category-tab:hover {
+  background: #E5E7EB;
+}
+
+.cmd-category-tab.active {
+  background: #6B7280;
+  color: white;
+}
+
+/* 指令列表 */
+.cmd-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.cmd-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-bottom: 4px;
+}
+
+.cmd-item:hover {
+  background: #F3F4F6;
+}
+
+.cmd-item-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+  margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cmd-item-title .star {
+  color: #F59E0B;
+  font-size: 12px;
+}
+
+.cmd-item-content {
+  font-size: 12px;
+  color: #6B7280;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* 複製成功提示 */
+.cmd-copy-toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #10B981;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  z-index: 2147483647;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.cmd-copy-toast.show {
+  opacity: 1;
+}
+
+/* 空狀態 */
+.cmd-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: #9CA3AF;
+}
+
+.cmd-empty-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.cmd-empty-text {
+  font-size: 14px;
+  margin: 0;
+}
+
+/* 新增/編輯表單 */
+.cmd-form {
+  padding: 16px;
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cmd-form.open {
+  display: flex;
+}
+
+.cmd-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cmd-form-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.cmd-form-input {
+  padding: 8px 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.cmd-form-input:focus {
+  border-color: #6B7280;
+}
+
+.cmd-form-textarea {
+  min-height: 80px;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+.cmd-form-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cmd-form-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.cmd-form-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.cmd-form-btn-cancel {
+  background: #F3F4F6;
+  color: #374151;
+}
+
+.cmd-form-btn-cancel:hover {
+  background: #E5E7EB;
+}
+
+.cmd-form-btn-save {
+  background: #6B7280;
+  color: white;
+}
+
+.cmd-form-btn-save:hover {
+  background: #4B5563;
+}
+
+/* 指令項目操作按鈕 */
+.cmd-item-actions {
+  display: none;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.cmd-item:hover .cmd-item-actions {
+  display: flex;
+}
+
+.cmd-item-action-btn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9CA3AF;
+  transition: all 0.15s;
+}
+
+.cmd-item-action-btn:hover {
+  background: #E5E7EB;
+  color: #374151;
+}
