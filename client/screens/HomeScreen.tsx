@@ -6,36 +6,50 @@ import Animated, {
   withTiming,
   withDelay,
 } from "react-native-reanimated";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { FloatingBall } from "@/components/FloatingBall";
 import { ThemedText } from "@/components/ThemedText";
+import { RootStackParamList } from "@/navigation/RootStackNavigator";
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, "Home">;
 
 export default function HomeScreen() {
+  const navigation = useNavigation<NavigationProp>();
   const [hasInteracted, setHasInteracted] = useState(false);
   const instructionOpacity = useSharedValue(1);
 
   useEffect(() => {
-    instructionOpacity.value = withDelay(3000, withTiming(0, { duration: 1000 }));
+    instructionOpacity.value = withDelay(
+      3000,
+      withTiming(0, { duration: 1000 }),
+    );
 
     const timer = setTimeout(() => {
       setHasInteracted(true);
     }, 4000);
 
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const instructionStyle = useAnimatedStyle(() => ({
     opacity: instructionOpacity.value,
   }));
 
+  const handleBallPress = () => {
+    navigation.navigate("CommandList");
+  };
+
   return (
     <View style={styles.container}>
       {!hasInteracted ? (
         <Animated.View style={[styles.instructionContainer, instructionStyle]}>
-          <ThemedText style={styles.instruction}>拖動我</ThemedText>
+          <ThemedText style={styles.instruction}>點擊懸浮球開啟指令</ThemedText>
         </Animated.View>
       ) : null}
-      <FloatingBall />
+      <FloatingBall onPress={handleBallPress} />
     </View>
   );
 }
