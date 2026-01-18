@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const BALL_SIZE = 60;
 const EDGE_MARGIN = 16;
+const TAP_THRESHOLD = 10; // 移動距離小於此值視為點擊
 
 const springConfig = {
   damping: 20,
@@ -19,7 +20,11 @@ const springConfig = {
   mass: 1,
 };
 
-export function FloatingBall() {
+interface FloatingBallProps {
+  onPress?: () => void;
+}
+
+export function FloatingBall({ onPress }: FloatingBallProps) {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
@@ -35,9 +40,15 @@ export function FloatingBall() {
 
   const contextX = useSharedValue(0);
   const contextY = useSharedValue(0);
+  const totalTranslation = useSharedValue(0);
 
   const triggerHaptic = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const handleTap = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onPress?.();
   };
 
   const snapToEdge = () => {
@@ -71,6 +82,7 @@ export function FloatingBall() {
     .onStart(() => {
       contextX.value = translateX.value;
       contextY.value = translateY.value;
+      totalTranslation.value = 0;
       scale.value = withSpring(1.1, springConfig);
       opacity.value = withSpring(1, springConfig);
       runOnJS(triggerHaptic)();
@@ -78,18 +90,32 @@ export function FloatingBall() {
     .onUpdate((event) => {
       translateX.value = contextX.value + event.translationX;
       translateY.value = contextY.value + event.translationY;
+      totalTranslation.value =
+        Math.abs(event.translationX) + Math.abs(event.translationY);
       clampPosition();
     })
     .onEnd(() => {
       scale.value = withSpring(1, springConfig);
       opacity.value = withSpring(0.85, springConfig);
-      snapToEdge();
-      translateY.value = withSpring(
-        Math.max(minY, Math.min(maxY, translateY.value)),
-        springConfig
-      );
-      runOnJS(triggerHaptic)();
+
+      // 如果移動距離很小，視為點擊
+      if (totalTranslation.value < TAP_THRESHOLD) {
+        runOnJS(handleTap)();
+      } else {
+        snapToEdge();
+        translateY.value = withSpring(
+          Math.max(minY, Math.min(maxY, translateY.value)),
+          springConfig,
+        );
+        runOnJS(triggerHaptic)();
+      }
     });
+
+  const tapGesture = Gesture.Tap().onEnd(() => {
+    runOnJS(handleTap)();
+  });
+
+  const composedGesture = Gesture.Race(panGesture, tapGesture);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -101,7 +127,7 @@ export function FloatingBall() {
   }));
 
   return (
-    <GestureDetector gesture={panGesture}>
+    <GestureDetector gesture={composedGesture}>
       <Animated.View style={[styles.ball, animatedStyle]} />
     </GestureDetector>
   );
