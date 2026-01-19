@@ -162,7 +162,7 @@
 .cmd-category-tabs {
   display: flex;
   gap: 6px;
-  padding: 8px 12px;
+  padding: 12px 12px 8px 12px;
   overflow-x: auto;
   overflow-y: hidden;
   border-bottom: 1px solid #E5E7EB;
@@ -171,16 +171,21 @@
 }
 
 .cmd-category-tabs::-webkit-scrollbar {
-  height: 4px;
+  height: 6px;
 }
 
 .cmd-category-tabs::-webkit-scrollbar-track {
-  background: #F3F4F6;
+  background: transparent;
+  margin: 0 8px;
 }
 
 .cmd-category-tabs::-webkit-scrollbar-thumb {
   background: #D1D5DB;
-  border-radius: 2px;
+  border-radius: 3px;
+}
+
+.cmd-category-tabs::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
 }
 
 .cmd-category-tab {
