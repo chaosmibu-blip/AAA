@@ -405,10 +405,11 @@
     document.addEventListener("copy", (e) => {
       // 如果面板開啟，自動收集複製的內容
       if (isPanelOpen && !isFormOpen && !isManageMode) {
-        // 延遲讓系統先完成複製
-        setTimeout(() => {
-          autoCollectClipboard();
-        }, 200);
+        // 直接從選取的文字獲取，更可靠
+        const selectedText = window.getSelection().toString().trim();
+        if (selectedText) {
+          autoCollectText(selectedText);
+        }
       }
     });
   }
@@ -893,45 +894,35 @@
     document.querySelector(".cmd-panel-title").textContent = "我的指令";
   }
 
-  // 自動收集剪貼簿內容
-  async function autoCollectClipboard() {
-    try {
-      const text = await navigator.clipboard.readText();
-      if (!text || !text.trim()) {
-        return; // 空的就不收集
-      }
+  // 自動收集文字內容
+  async function autoCollectText(content) {
+    if (!content) return;
 
-      const content = text.trim();
+    // 檢查是否已經有相同內容（避免重複收集）
+    const isDuplicate = commands.some(cmd => cmd.content === content);
+    if (isDuplicate) {
+      return; // 已存在就不重複收集
+    }
 
-      // 檢查是否已經有相同內容（避免重複收集）
-      const isDuplicate = commands.some(cmd => cmd.content === content);
-      if (isDuplicate) {
-        return; // 已存在就不重複收集
-      }
+    // 自動生成標題（取第一行前 30 個字元）
+    const title = content.split("\n")[0].substring(0, 30) || "未命名";
 
-      // 自動生成標題（取第一行前 30 個字元）
-      const title = content.split("\n")[0].substring(0, 30) || "未命名";
+    // 新增到指令庫
+    commands.push({
+      id: generateId(),
+      title,
+      content,
+      categoryId: "clipboard",
+      isFavorite: false,
+      usageCount: 0,
+    });
 
-      // 新增到指令庫
-      commands.push({
-        id: generateId(),
-        title,
-        content,
-        categoryId: "clipboard",
-        isFavorite: false,
-        usageCount: 0,
-      });
+    await saveCommands();
+    showToastMessage("已自動收集");
 
-      await saveCommands();
-      showToastMessage("已自動收集");
-
-      // 重新渲染列表
-      if (isPanelOpen) {
-        renderCommandList();
-      }
-    } catch (e) {
-      // 靜默失敗，不打擾用戶
-      console.error("Auto collect failed:", e);
+    // 重新渲染列表
+    if (isPanelOpen) {
+      renderCommandList();
     }
   }
 
