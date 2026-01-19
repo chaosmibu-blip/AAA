@@ -334,27 +334,6 @@
     toast.textContent = "已複製到剪貼簿";
     document.body.appendChild(toast);
 
-    // 快速收集對話框
-    const quickAdd = document.createElement("div");
-    quickAdd.className = "cmd-quick-add";
-    quickAdd.id = "cmd-quick-add";
-    quickAdd.innerHTML = `
-      <div class="cmd-quick-add-content">
-        <div class="cmd-quick-add-header">
-          <span class="cmd-quick-add-icon">📋</span>
-          <span>收集到剪貼簿</span>
-          <button class="cmd-quick-add-close" id="cmd-quick-add-close">&times;</button>
-        </div>
-        <div class="cmd-quick-add-preview" id="cmd-quick-add-preview"></div>
-        <input type="text" class="cmd-quick-add-input" id="cmd-quick-add-title" placeholder="輸入名稱（可選）">
-        <div class="cmd-quick-add-actions">
-          <button class="cmd-quick-add-btn cmd-quick-add-btn-cancel" id="cmd-quick-add-cancel">取消</button>
-          <button class="cmd-quick-add-btn cmd-quick-add-btn-save" id="cmd-quick-add-save">收集</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(quickAdd);
-
     // 綁定事件
     bindEvents();
   }
@@ -422,46 +401,15 @@
       saveForm();
     });
 
-    // 快速收集對話框事件
-    const quickAddClose = document.getElementById("cmd-quick-add-close");
-    const quickAddCancel = document.getElementById("cmd-quick-add-cancel");
-    const quickAddSave = document.getElementById("cmd-quick-add-save");
-
-    quickAddClose.addEventListener("click", (e) => {
-      e.stopPropagation();
-      closeQuickAdd();
-    });
-
-    quickAddCancel.addEventListener("click", (e) => {
-      e.stopPropagation();
-      closeQuickAdd();
-    });
-
-    quickAddSave.addEventListener("click", (e) => {
-      e.stopPropagation();
-      saveQuickAdd();
-    });
-
-    // 監聽 Ctrl+V / Cmd+V
+    // 監聯 Ctrl+V / Cmd+V - 自動收集到剪貼簿
     document.addEventListener("keydown", async (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "v") {
-        // 如果正在輸入框中，不攔截
-        const activeEl = document.activeElement;
-        const isInInput = activeEl && (
-          activeEl.tagName === "INPUT" ||
-          activeEl.tagName === "TEXTAREA" ||
-          activeEl.isContentEditable
-        );
-
-        // 如果在擴充功能的輸入框中，不攔截
-        const isInExtension = activeEl && activeEl.closest("#cmd-helper-root, #cmd-quick-add");
-
-        if (!isInInput || isInExtension) {
-          // 如果面板開啟且不在表單模式，顯示快速收集
-          if (isPanelOpen && !isFormOpen) {
-            e.preventDefault();
-            await openQuickAdd();
-          }
+        // 如果面板開啟，自動收集剪貼簿內容（不阻止正常貼上）
+        if (isPanelOpen && !isFormOpen && !isManageMode) {
+          // 延遲一點點讓系統先處理貼上
+          setTimeout(() => {
+            autoCollectClipboard();
+          }, 100);
         }
       }
     });
@@ -947,77 +895,45 @@
     document.querySelector(".cmd-panel-title").textContent = "我的指令";
   }
 
-  // 快速收集 - 暫存的剪貼簿內容
-  let quickAddContent = "";
-
-  // 開啟快速收集對話框
-  async function openQuickAdd() {
+  // 自動收集剪貼簿內容
+  async function autoCollectClipboard() {
     try {
       const text = await navigator.clipboard.readText();
       if (!text || !text.trim()) {
-        showToastMessage("剪貼簿是空的");
-        return;
+        return; // 空的就不收集
       }
 
-      quickAddContent = text.trim();
-      const preview = document.getElementById("cmd-quick-add-preview");
-      const titleInput = document.getElementById("cmd-quick-add-title");
+      const content = text.trim();
 
-      // 顯示預覽（截斷過長內容）
-      const previewText = quickAddContent.length > 200
-        ? quickAddContent.substring(0, 200) + "..."
-        : quickAddContent;
-      preview.textContent = previewText;
+      // 檢查是否已經有相同內容（避免重複收集）
+      const isDuplicate = commands.some(cmd => cmd.content === content);
+      if (isDuplicate) {
+        return; // 已存在就不重複收集
+      }
 
-      // 自動生成標題建議（取前 30 個字元）
-      const suggestedTitle = quickAddContent.split("\n")[0].substring(0, 30);
-      titleInput.value = "";
-      titleInput.placeholder = suggestedTitle || "輸入名稱（可選）";
+      // 自動生成標題（取第一行前 30 個字元）
+      const title = content.split("\n")[0].substring(0, 30) || "未命名";
 
-      // 顯示對話框
-      document.getElementById("cmd-quick-add").classList.add("open");
-      titleInput.focus();
+      // 新增到指令庫
+      commands.push({
+        id: generateId(),
+        title,
+        content,
+        categoryId: "clipboard",
+        isFavorite: false,
+        usageCount: 0,
+      });
+
+      await saveCommands();
+      showToastMessage("已自動收集");
+
+      // 重新渲染列表
+      if (isPanelOpen) {
+        renderCommandList();
+      }
     } catch (e) {
-      console.error("Failed to read clipboard:", e);
-      showToastMessage("無法讀取剪貼簿");
-    }
-  }
-
-  // 關閉快速收集對話框
-  function closeQuickAdd() {
-    document.getElementById("cmd-quick-add").classList.remove("open");
-    quickAddContent = "";
-  }
-
-  // 儲存快速收集的內容
-  async function saveQuickAdd() {
-    if (!quickAddContent) return;
-
-    const titleInput = document.getElementById("cmd-quick-add-title");
-    let title = titleInput.value.trim();
-
-    // 如果沒輸入標題，使用內容的前 30 個字元
-    if (!title) {
-      title = quickAddContent.split("\n")[0].substring(0, 30) || "未命名";
-    }
-
-    // 新增到指令庫
-    commands.push({
-      id: generateId(),
-      title,
-      content: quickAddContent,
-      categoryId: "clipboard",
-      isFavorite: false,
-      usageCount: 0,
-    });
-
-    await saveCommands();
-    closeQuickAdd();
-    showToastMessage("已收集到剪貼簿");
-
-    // 重新渲染列表
-    if (isPanelOpen) {
-      renderCommandList();
+      // 靜默失敗，不打擾用戶
+      console.error("Auto collect failed:", e);
     }
   }
 
