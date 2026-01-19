@@ -401,16 +401,14 @@
       saveForm();
     });
 
-    // 監聽 Ctrl+C / Cmd+C - 自動收集複製的內容
-    document.addEventListener("keydown", async (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "c") {
-        // 如果面板開啟，自動收集複製的內容
-        if (isPanelOpen && !isFormOpen && !isManageMode) {
-          // 延遲一點點讓系統先處理複製
-          setTimeout(() => {
-            autoCollectClipboard();
-          }, 100);
-        }
+    // 監聽 copy 事件 - 自動收集複製的內容
+    document.addEventListener("copy", (e) => {
+      // 如果面板開啟，自動收集複製的內容
+      if (isPanelOpen && !isFormOpen && !isManageMode) {
+        // 延遲讓系統先完成複製
+        setTimeout(() => {
+          autoCollectClipboard();
+        }, 200);
       }
     });
   }
