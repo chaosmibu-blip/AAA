@@ -3,7 +3,7 @@
   "name": "指令小幫手",
   "description": "快速複製常用指令的懸浮球工具，內建提問模板幫你問 AI 好問題",
   "version": "1.0.0",
-  "permissions": ["storage", "clipboardWrite"],
+  "permissions": ["storage", "clipboardWrite", "clipboardRead"],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {

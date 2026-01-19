@@ -6,6 +6,7 @@
   const DEFAULT_CATEGORIES = [
     { id: "all", name: "全部", icon: "folder" },
     { id: "favorite", name: "常用", icon: "star" },
+    { id: "clipboard", name: "剪貼簿", icon: "clipboard" },
     { id: "prompt", name: "提問模板", icon: "message" },
     { id: "git", name: "Git", icon: "git" },
     { id: "dev", name: "開發", icon: "code" },
@@ -176,6 +177,8 @@
   let selectedCategory = "all";
   let isPanelOpen = false;
   let isFormOpen = false;
+  let isManageMode = false;
+  let selectedIds = new Set();
   let editingCommandId = null;
   let isDragging = false;
   let isPointerDown = false;
@@ -274,11 +277,28 @@
     panel.innerHTML = `
       <div class="cmd-panel-header">
         <h3 class="cmd-panel-title">我的指令</h3>
-        <button class="cmd-panel-add-btn" id="cmd-add-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
+        <div class="cmd-panel-actions">
+          <button class="cmd-panel-action-btn" id="cmd-manage-btn" title="管理">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </button>
+          <button class="cmd-panel-action-btn" id="cmd-add-btn" title="新增">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="cmd-manage-bar" id="cmd-manage-bar">
+        <label class="cmd-select-all">
+          <input type="checkbox" id="cmd-select-all-checkbox">
+          <span>全選</span>
+        </label>
+        <button class="cmd-delete-selected-btn" id="cmd-delete-selected-btn">
+          刪除選取 (<span id="cmd-selected-count">0</span>)
         </button>
       </div>
       <div class="cmd-category-tabs" id="cmd-category-tabs"></div>
@@ -323,6 +343,9 @@
     const ball = document.getElementById("cmd-helper-ball");
     const panel = document.getElementById("cmd-helper-panel");
     const addBtn = document.getElementById("cmd-add-btn");
+    const manageBtn = document.getElementById("cmd-manage-btn");
+    const selectAllCheckbox = document.getElementById("cmd-select-all-checkbox");
+    const deleteSelectedBtn = document.getElementById("cmd-delete-selected-btn");
     const formCancelBtn = document.getElementById("cmd-form-cancel");
     const formSaveBtn = document.getElementById("cmd-form-save");
 
@@ -348,6 +371,24 @@
       openForm();
     });
 
+    // 管理按鈕
+    manageBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleManageMode();
+    });
+
+    // 全選 checkbox
+    selectAllCheckbox.addEventListener("change", (e) => {
+      e.stopPropagation();
+      toggleSelectAll(e.target.checked);
+    });
+
+    // 刪除選取按鈕
+    deleteSelectedBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      deleteSelected();
+    });
+
     // 表單取消
     formCancelBtn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -358,6 +399,19 @@
     formSaveBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       saveForm();
+    });
+
+    // 監聽 Ctrl+C / Cmd+C - 自動收集複製的內容
+    document.addEventListener("keydown", async (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "c") {
+        // 如果面板開啟，自動收集複製的內容
+        if (isPanelOpen && !isFormOpen && !isManageMode) {
+          // 延遲一點點讓系統先處理複製
+          setTimeout(() => {
+            autoCollectClipboard();
+          }, 100);
+        }
+      }
     });
   }
 
@@ -447,10 +501,15 @@
     const panel = document.getElementById("cmd-helper-panel");
     isPanelOpen = true;
     isFormOpen = false;
+    isManageMode = false;
+    selectedIds.clear();
     panel.classList.add("open");
     document.getElementById("cmd-form").classList.remove("open");
     document.getElementById("cmd-list").style.display = "block";
     document.querySelector(".cmd-category-tabs").style.display = "flex";
+    document.getElementById("cmd-manage-bar").classList.remove("open");
+    document.getElementById("cmd-manage-btn").classList.remove("active");
+    document.querySelector(".cmd-panel-title").textContent = "我的指令";
     updatePanelPosition();
     renderCategoryTabs();
     renderCommandList();
@@ -461,7 +520,122 @@
     const panel = document.getElementById("cmd-helper-panel");
     isPanelOpen = false;
     isFormOpen = false;
+    isManageMode = false;
+    selectedIds.clear();
     panel.classList.remove("open");
+  }
+
+  // 切換管理模式
+  function toggleManageMode() {
+    isManageMode = !isManageMode;
+    selectedIds.clear();
+
+    const manageBar = document.getElementById("cmd-manage-bar");
+    const manageBtn = document.getElementById("cmd-manage-btn");
+    const selectAllCheckbox = document.getElementById("cmd-select-all-checkbox");
+
+    if (isManageMode) {
+      manageBar.classList.add("open");
+      manageBtn.classList.add("active");
+      document.querySelector(".cmd-panel-title").textContent = "管理指令";
+    } else {
+      manageBar.classList.remove("open");
+      manageBtn.classList.remove("active");
+      document.querySelector(".cmd-panel-title").textContent = "我的指令";
+    }
+
+    selectAllCheckbox.checked = false;
+    updateSelectedCount();
+    renderCommandList();
+  }
+
+  // 全選/取消全選
+  function toggleSelectAll(checked) {
+    const filtered = getFilteredCommands();
+
+    if (checked) {
+      filtered.forEach(cmd => selectedIds.add(cmd.id));
+    } else {
+      selectedIds.clear();
+    }
+
+    updateSelectedCount();
+    renderCommandList();
+  }
+
+  // 切換單個選取
+  function toggleSelectItem(id) {
+    if (selectedIds.has(id)) {
+      selectedIds.delete(id);
+    } else {
+      selectedIds.add(id);
+    }
+
+    updateSelectedCount();
+    updateSelectAllCheckbox();
+  }
+
+  // 更新選取數量
+  function updateSelectedCount() {
+    document.getElementById("cmd-selected-count").textContent = selectedIds.size;
+
+    const deleteBtn = document.getElementById("cmd-delete-selected-btn");
+    if (selectedIds.size > 0) {
+      deleteBtn.classList.add("active");
+    } else {
+      deleteBtn.classList.remove("active");
+    }
+  }
+
+  // 更新全選 checkbox 狀態
+  function updateSelectAllCheckbox() {
+    const filtered = getFilteredCommands();
+    const selectAllCheckbox = document.getElementById("cmd-select-all-checkbox");
+
+    if (filtered.length === 0) {
+      selectAllCheckbox.checked = false;
+      selectAllCheckbox.indeterminate = false;
+    } else if (filtered.every(cmd => selectedIds.has(cmd.id))) {
+      selectAllCheckbox.checked = true;
+      selectAllCheckbox.indeterminate = false;
+    } else if (filtered.some(cmd => selectedIds.has(cmd.id))) {
+      selectAllCheckbox.checked = false;
+      selectAllCheckbox.indeterminate = true;
+    } else {
+      selectAllCheckbox.checked = false;
+      selectAllCheckbox.indeterminate = false;
+    }
+  }
+
+  // 刪除選取的指令
+  async function deleteSelected() {
+    if (selectedIds.size === 0) return;
+
+    if (confirm(`確定要刪除 ${selectedIds.size} 個指令嗎？`)) {
+      commands = commands.filter(c => !selectedIds.has(c.id));
+      await saveCommands();
+      selectedIds.clear();
+      updateSelectedCount();
+      renderCommandList();
+
+      // 如果刪完了就退出管理模式
+      if (commands.length === 0) {
+        toggleManageMode();
+      }
+    }
+  }
+
+  // 取得篩選後的指令
+  function getFilteredCommands() {
+    let filtered = commands;
+
+    if (selectedCategory === "favorite") {
+      filtered = commands.filter((cmd) => cmd.isFavorite);
+    } else if (selectedCategory !== "all") {
+      filtered = commands.filter((cmd) => cmd.categoryId === selectedCategory);
+    }
+
+    return filtered;
   }
 
   // 更新面板位置
@@ -502,13 +676,7 @@
   // 渲染指令列表
   function renderCommandList() {
     const container = document.getElementById("cmd-list");
-    let filtered = commands;
-
-    if (selectedCategory === "favorite") {
-      filtered = commands.filter((cmd) => cmd.isFavorite);
-    } else if (selectedCategory !== "all") {
-      filtered = commands.filter((cmd) => cmd.categoryId === selectedCategory);
-    }
+    let filtered = getFilteredCommands();
 
     // 排序：收藏優先，使用次數多的優先
     filtered.sort((a, b) => {
@@ -530,46 +698,77 @@
     container.innerHTML = filtered
       .map(
         (cmd) => `
-      <div class="cmd-item" data-id="${cmd.id}">
-        <div class="cmd-item-title">
-          ${cmd.isFavorite ? '<span class="star">★</span>' : ""}
-          ${escapeHtml(cmd.title)}
-          <div class="cmd-item-actions">
-            <button class="cmd-item-action-btn cmd-edit-btn" data-id="${cmd.id}" title="編輯">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-              </svg>
-            </button>
-            <button class="cmd-item-action-btn cmd-delete-btn" data-id="${cmd.id}" title="刪除">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-              </svg>
-            </button>
+      <div class="cmd-item ${isManageMode ? 'manage-mode' : ''} ${selectedIds.has(cmd.id) ? 'selected' : ''}" data-id="${cmd.id}">
+        ${isManageMode ? `
+          <label class="cmd-item-checkbox" onclick="event.stopPropagation()">
+            <input type="checkbox" ${selectedIds.has(cmd.id) ? 'checked' : ''} data-id="${cmd.id}">
+            <span class="cmd-checkbox-mark"></span>
+          </label>
+        ` : ''}
+        <div class="cmd-item-main">
+          <div class="cmd-item-title">
+            ${cmd.isFavorite ? '<span class="star">★</span>' : ""}
+            ${escapeHtml(cmd.title)}
+            ${!isManageMode ? `
+              <div class="cmd-item-actions">
+                <button class="cmd-item-action-btn cmd-edit-btn" data-id="${cmd.id}" title="編輯">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                </button>
+                <button class="cmd-item-action-btn cmd-delete-btn" data-id="${cmd.id}" title="刪除">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                </button>
+              </div>
+            ` : ''}
           </div>
+          <p class="cmd-item-content">${escapeHtml(cmd.content)}</p>
         </div>
-        <p class="cmd-item-content">${escapeHtml(cmd.content)}</p>
       </div>
     `
       )
       .join("");
 
-    // 綁定點擊事件（複製）
+    // 綁定點擊事件
     container.querySelectorAll(".cmd-item").forEach((item) => {
       item.addEventListener("click", (e) => {
         if (
           e.target.closest(".cmd-edit-btn") ||
-          e.target.closest(".cmd-delete-btn")
+          e.target.closest(".cmd-delete-btn") ||
+          e.target.closest(".cmd-item-checkbox")
         ) {
           return;
         }
         e.stopPropagation();
         const id = item.dataset.id;
-        const cmd = commands.find((c) => c.id === id);
-        if (cmd) {
-          copyToClipboard(cmd);
+
+        if (isManageMode) {
+          // 管理模式：點擊整個項目也能切換選取
+          toggleSelectItem(id);
+          item.classList.toggle("selected");
+          const checkbox = item.querySelector('input[type="checkbox"]');
+          if (checkbox) checkbox.checked = selectedIds.has(id);
+        } else {
+          // 正常模式：複製
+          const cmd = commands.find((c) => c.id === id);
+          if (cmd) {
+            copyToClipboard(cmd);
+          }
         }
+      });
+    });
+
+    // 綁定 checkbox 事件
+    container.querySelectorAll('.cmd-item-checkbox input').forEach((checkbox) => {
+      checkbox.addEventListener("change", (e) => {
+        const id = checkbox.dataset.id;
+        toggleSelectItem(id);
+        const item = checkbox.closest(".cmd-item");
+        item.classList.toggle("selected", selectedIds.has(id));
       });
     });
 
@@ -590,6 +789,11 @@
         deleteCommand(id);
       });
     });
+
+    // 更新全選 checkbox
+    if (isManageMode) {
+      updateSelectAllCheckbox();
+    }
   }
 
   // 複製到剪貼簿
@@ -624,9 +828,13 @@
   function openForm(commandId = null) {
     editingCommandId = commandId;
     isFormOpen = true;
+    isManageMode = false;
+    selectedIds.clear();
 
     document.getElementById("cmd-list").style.display = "none";
     document.querySelector(".cmd-category-tabs").style.display = "none";
+    document.getElementById("cmd-manage-bar").classList.remove("open");
+    document.getElementById("cmd-manage-btn").classList.remove("active");
     document.getElementById("cmd-form").classList.add("open");
 
     // 渲染分類選項
@@ -685,6 +893,59 @@
     document.getElementById("cmd-list").style.display = "block";
     document.querySelector(".cmd-category-tabs").style.display = "flex";
     document.querySelector(".cmd-panel-title").textContent = "我的指令";
+  }
+
+  // 自動收集剪貼簿內容
+  async function autoCollectClipboard() {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (!text || !text.trim()) {
+        return; // 空的就不收集
+      }
+
+      const content = text.trim();
+
+      // 檢查是否已經有相同內容（避免重複收集）
+      const isDuplicate = commands.some(cmd => cmd.content === content);
+      if (isDuplicate) {
+        return; // 已存在就不重複收集
+      }
+
+      // 自動生成標題（取第一行前 30 個字元）
+      const title = content.split("\n")[0].substring(0, 30) || "未命名";
+
+      // 新增到指令庫
+      commands.push({
+        id: generateId(),
+        title,
+        content,
+        categoryId: "clipboard",
+        isFavorite: false,
+        usageCount: 0,
+      });
+
+      await saveCommands();
+      showToastMessage("已自動收集");
+
+      // 重新渲染列表
+      if (isPanelOpen) {
+        renderCommandList();
+      }
+    } catch (e) {
+      // 靜默失敗，不打擾用戶
+      console.error("Auto collect failed:", e);
+    }
+  }
+
+  // 顯示提示訊息
+  function showToastMessage(message) {
+    const toast = document.getElementById("cmd-copy-toast");
+    toast.textContent = message;
+    toast.classList.add("show");
+    setTimeout(() => {
+      toast.classList.remove("show");
+      toast.textContent = "已複製到剪貼簿";
+    }, 1500);
   }
 
   // 儲存表單
