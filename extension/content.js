@@ -6,6 +6,7 @@
   const DEFAULT_CATEGORIES = [
     { id: "all", name: "全部", icon: "folder" },
     { id: "favorite", name: "常用", icon: "star" },
+    { id: "clipboard", name: "剪貼簿", icon: "clipboard" },
     { id: "prompt", name: "提問模板", icon: "message" },
     { id: "git", name: "Git", icon: "git" },
     { id: "dev", name: "開發", icon: "code" },
@@ -333,6 +334,27 @@
     toast.textContent = "已複製到剪貼簿";
     document.body.appendChild(toast);
 
+    // 快速收集對話框
+    const quickAdd = document.createElement("div");
+    quickAdd.className = "cmd-quick-add";
+    quickAdd.id = "cmd-quick-add";
+    quickAdd.innerHTML = `
+      <div class="cmd-quick-add-content">
+        <div class="cmd-quick-add-header">
+          <span class="cmd-quick-add-icon">📋</span>
+          <span>收集到剪貼簿</span>
+          <button class="cmd-quick-add-close" id="cmd-quick-add-close">&times;</button>
+        </div>
+        <div class="cmd-quick-add-preview" id="cmd-quick-add-preview"></div>
+        <input type="text" class="cmd-quick-add-input" id="cmd-quick-add-title" placeholder="輸入名稱（可選）">
+        <div class="cmd-quick-add-actions">
+          <button class="cmd-quick-add-btn cmd-quick-add-btn-cancel" id="cmd-quick-add-cancel">取消</button>
+          <button class="cmd-quick-add-btn cmd-quick-add-btn-save" id="cmd-quick-add-save">收集</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(quickAdd);
+
     // 綁定事件
     bindEvents();
   }
@@ -398,6 +420,50 @@
     formSaveBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       saveForm();
+    });
+
+    // 快速收集對話框事件
+    const quickAddClose = document.getElementById("cmd-quick-add-close");
+    const quickAddCancel = document.getElementById("cmd-quick-add-cancel");
+    const quickAddSave = document.getElementById("cmd-quick-add-save");
+
+    quickAddClose.addEventListener("click", (e) => {
+      e.stopPropagation();
+      closeQuickAdd();
+    });
+
+    quickAddCancel.addEventListener("click", (e) => {
+      e.stopPropagation();
+      closeQuickAdd();
+    });
+
+    quickAddSave.addEventListener("click", (e) => {
+      e.stopPropagation();
+      saveQuickAdd();
+    });
+
+    // 監聽 Ctrl+V / Cmd+V
+    document.addEventListener("keydown", async (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "v") {
+        // 如果正在輸入框中，不攔截
+        const activeEl = document.activeElement;
+        const isInInput = activeEl && (
+          activeEl.tagName === "INPUT" ||
+          activeEl.tagName === "TEXTAREA" ||
+          activeEl.isContentEditable
+        );
+
+        // 如果在擴充功能的輸入框中，不攔截
+        const isInExtension = activeEl && activeEl.closest("#cmd-helper-root, #cmd-quick-add");
+
+        if (!isInInput || isInExtension) {
+          // 如果面板開啟且不在表單模式，顯示快速收集
+          if (isPanelOpen && !isFormOpen) {
+            e.preventDefault();
+            await openQuickAdd();
+          }
+        }
+      }
     });
   }
 
@@ -879,6 +945,91 @@
     document.getElementById("cmd-list").style.display = "block";
     document.querySelector(".cmd-category-tabs").style.display = "flex";
     document.querySelector(".cmd-panel-title").textContent = "我的指令";
+  }
+
+  // 快速收集 - 暫存的剪貼簿內容
+  let quickAddContent = "";
+
+  // 開啟快速收集對話框
+  async function openQuickAdd() {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (!text || !text.trim()) {
+        showToastMessage("剪貼簿是空的");
+        return;
+      }
+
+      quickAddContent = text.trim();
+      const preview = document.getElementById("cmd-quick-add-preview");
+      const titleInput = document.getElementById("cmd-quick-add-title");
+
+      // 顯示預覽（截斷過長內容）
+      const previewText = quickAddContent.length > 200
+        ? quickAddContent.substring(0, 200) + "..."
+        : quickAddContent;
+      preview.textContent = previewText;
+
+      // 自動生成標題建議（取前 30 個字元）
+      const suggestedTitle = quickAddContent.split("\n")[0].substring(0, 30);
+      titleInput.value = "";
+      titleInput.placeholder = suggestedTitle || "輸入名稱（可選）";
+
+      // 顯示對話框
+      document.getElementById("cmd-quick-add").classList.add("open");
+      titleInput.focus();
+    } catch (e) {
+      console.error("Failed to read clipboard:", e);
+      showToastMessage("無法讀取剪貼簿");
+    }
+  }
+
+  // 關閉快速收集對話框
+  function closeQuickAdd() {
+    document.getElementById("cmd-quick-add").classList.remove("open");
+    quickAddContent = "";
+  }
+
+  // 儲存快速收集的內容
+  async function saveQuickAdd() {
+    if (!quickAddContent) return;
+
+    const titleInput = document.getElementById("cmd-quick-add-title");
+    let title = titleInput.value.trim();
+
+    // 如果沒輸入標題，使用內容的前 30 個字元
+    if (!title) {
+      title = quickAddContent.split("\n")[0].substring(0, 30) || "未命名";
+    }
+
+    // 新增到指令庫
+    commands.push({
+      id: generateId(),
+      title,
+      content: quickAddContent,
+      categoryId: "clipboard",
+      isFavorite: false,
+      usageCount: 0,
+    });
+
+    await saveCommands();
+    closeQuickAdd();
+    showToastMessage("已收集到剪貼簿");
+
+    // 重新渲染列表
+    if (isPanelOpen) {
+      renderCommandList();
+    }
+  }
+
+  // 顯示提示訊息
+  function showToastMessage(message) {
+    const toast = document.getElementById("cmd-copy-toast");
+    toast.textContent = message;
+    toast.classList.add("show");
+    setTimeout(() => {
+      toast.classList.remove("show");
+      toast.textContent = "已複製到剪貼簿";
+    }, 1500);
   }
 
   // 儲存表單
