@@ -405,13 +405,29 @@
     document.addEventListener("copy", (e) => {
       // 如果面板開啟，自動收集複製的內容
       if (isPanelOpen && !isFormOpen && !isManageMode) {
-        // 直接從選取的文字獲取，更可靠
-        const selectedText = window.getSelection().toString().trim();
+        const selectedText = getSelectedText();
         if (selectedText) {
           autoCollectText(selectedText);
         }
       }
     });
+  }
+
+  // 獲取選取的文字（支援輸入框和一般文字）
+  function getSelectedText() {
+    const activeElement = document.activeElement;
+
+    // 檢查是否在 input 或 textarea 中
+    if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+      const start = activeElement.selectionStart;
+      const end = activeElement.selectionEnd;
+      if (start !== end) {
+        return activeElement.value.substring(start, end).trim();
+      }
+    }
+
+    // 否則使用 window.getSelection()
+    return window.getSelection().toString().trim();
   }
 
   // 拖動開始
