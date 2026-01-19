@@ -401,12 +401,12 @@
       saveForm();
     });
 
-    // 監聯 Ctrl+V / Cmd+V - 自動收集到剪貼簿
+    // 監聽 Ctrl+C / Cmd+C - 自動收集複製的內容
     document.addEventListener("keydown", async (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "v") {
-        // 如果面板開啟，自動收集剪貼簿內容（不阻止正常貼上）
+      if ((e.ctrlKey || e.metaKey) && e.key === "c") {
+        // 如果面板開啟，自動收集複製的內容
         if (isPanelOpen && !isFormOpen && !isManageMode) {
-          // 延遲一點點讓系統先處理貼上
+          // 延遲一點點讓系統先處理複製
           setTimeout(() => {
             autoCollectClipboard();
           }, 100);
