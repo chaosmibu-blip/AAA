@@ -7,166 +7,162 @@
     { id: "all", name: "全部", icon: "folder" },
     { id: "favorite", name: "常用", icon: "star" },
     { id: "clipboard", name: "剪貼簿", icon: "clipboard" },
+    { id: "vibe", name: "Vibe Coding", icon: "sparkle" },
     { id: "prompt", name: "提問模板", icon: "message" },
-    { id: "git", name: "Git", icon: "git" },
-    { id: "dev", name: "開發", icon: "code" },
-    { id: "debug", name: "Debug", icon: "bug" },
+    { id: "debug", name: "除錯", icon: "bug" },
     { id: "other", name: "其他", icon: "more" },
   ];
 
   // 預設指令
   const DEFAULT_COMMANDS = [
-    // 提問模板
+    // Vibe Coding 基礎
     {
-      id: "p1",
-      title: "請求程式碼審查",
-      content: `請幫我審查以下程式碼，檢查：
-1. 是否有潛在的 bug 或錯誤
-2. 效能是否可以優化
-3. 程式碼風格是否一致
-4. 有沒有安全性問題
+      id: "v1",
+      title: "描述新功能",
+      content: `我想做一個 [功能描述]
 
-[在這裡貼上你的程式碼]`,
-      categoryId: "prompt",
+需求：
+- 使用者可以 [操作1]
+- 當 [條件] 時，會 [結果]
+- 介面要 [風格描述]
+
+請幫我實作這個功能`,
+      categoryId: "vibe",
       isFavorite: true,
       usageCount: 0,
     },
     {
-      id: "p2",
-      title: "解釋錯誤訊息",
-      content: `我遇到這個錯誤訊息：
+      id: "v2",
+      title: "修改現有功能",
+      content: `目前 [功能名稱] 的行為是 [現狀描述]
 
-[在這裡貼上錯誤訊息]
+我希望改成 [期望的新行為]
 
-請用簡單易懂的方式解釋：
-1. 這個錯誤是什麼意思
-2. 可能的原因有哪些
-3. 如何修復這個問題`,
-      categoryId: "prompt",
+請幫我修改`,
+      categoryId: "vibe",
       isFavorite: true,
       usageCount: 0,
     },
     {
-      id: "p3",
-      title: "寫單元測試",
-      content: `請幫以下函式寫單元測試，需要包含：
-1. 正常情況的測試
-2. 邊界條件測試
-3. 錯誤處理測試
-
-[在這裡貼上你的函式]`,
-      categoryId: "prompt",
-      isFavorite: false,
+      id: "v3",
+      title: "調整畫面樣式",
+      content: `請把 [元素名稱] 改成：
+- 顏色：[顏色]
+- 大小：[大小]
+- 位置：[位置]
+- 其他：[其他樣式]`,
+      categoryId: "vibe",
+      isFavorite: true,
       usageCount: 0,
     },
     {
-      id: "p4",
-      title: "重構程式碼",
-      content: `請幫我重構以下程式碼，目標是：
-1. 提高可讀性
-2. 減少重複代碼
-3. 遵循最佳實踐
-4. 保持原有功能不變
-
-請解釋你做了哪些改動和為什麼。
-
-[在這裡貼上你的程式碼]`,
-      categoryId: "prompt",
-      isFavorite: false,
-      usageCount: 0,
-    },
-    {
-      id: "p5",
-      title: "解釋程式碼",
-      content: `請用簡單的話解釋這段程式碼在做什麼，包含：
-1. 整體功能說明
-2. 逐行或逐區塊解釋
-3. 使用了哪些技術或設計模式
-
-[在這裡貼上程式碼]`,
-      categoryId: "prompt",
-      isFavorite: false,
-      usageCount: 0,
-    },
-    {
-      id: "p6",
-      title: "功能實作建議",
-      content: `我想實作這個功能：
-
-[描述你想做的功能]
+      id: "v4",
+      title: "請求建議做法",
+      content: `我想做 [目標描述]
 
 請告訴我：
-1. 推薦的技術方案
-2. 需要注意的地方
-3. 大概的實作步驟
-4. 可能遇到的問題`,
-      categoryId: "prompt",
-      isFavorite: false,
-      usageCount: 0,
-    },
-    // Git 指令
-    {
-      id: "g1",
-      title: "提交程式碼",
-      content: 'git commit -m "完成功能"',
-      categoryId: "git",
-      isFavorite: true,
-      usageCount: 0,
-    },
-    {
-      id: "g2",
-      title: "查看狀態",
-      content: "git status",
-      categoryId: "git",
+1. 推薦的做法
+2. 需要注意什麼
+3. 大概的步驟`,
+      categoryId: "vibe",
       isFavorite: false,
       usageCount: 0,
     },
     {
-      id: "g3",
-      title: "推送到遠端",
-      content: "git push origin main",
-      categoryId: "git",
+      id: "v5",
+      title: "用白話解釋",
+      content: `請用白話文解釋剛才做了什麼改動，以及為什麼這樣做
+
+我是程式新手，請說明得簡單易懂`,
+      categoryId: "vibe",
       isFavorite: false,
       usageCount: 0,
     },
     {
-      id: "g4",
-      title: "拉取最新代碼",
-      content: "git pull origin main",
-      categoryId: "git",
+      id: "v6",
+      title: "部署上線",
+      content: `這個專案要怎麼部署上線？
+
+請給我：
+1. 詳細的步驟
+2. 需要註冊什麼服務
+3. 有沒有免費的方案`,
+      categoryId: "vibe",
       isFavorite: false,
       usageCount: 0,
     },
-    {
-      id: "g5",
-      title: "建立新分支",
-      content: "git checkout -b feature/新功能名稱",
-      categoryId: "git",
-      isFavorite: false,
-      usageCount: 0,
-    },
-    // 開發指令
+    // 除錯類
     {
       id: "d1",
-      title: "啟動開發伺服器",
-      content: "npm run dev",
-      categoryId: "dev",
+      title: "回報錯誤",
+      content: `我遇到這個錯誤：
+
+[貼上錯誤訊息]
+
+我之前做了：[描述你的操作]
+預期結果是：[你期望發生什麼]
+實際結果是：[實際發生了什麼]`,
+      categoryId: "debug",
       isFavorite: true,
       usageCount: 0,
     },
     {
       id: "d2",
-      title: "安裝套件",
-      content: "npm install 套件名稱",
-      categoryId: "dev",
-      isFavorite: false,
+      title: "功能不正常",
+      content: `[功能名稱] 沒有正常運作
+
+問題描述：
+- 我點了 [按鈕/操作]
+- 但是 [問題描述]
+- 應該要 [預期行為]`,
+      categoryId: "debug",
+      isFavorite: true,
       usageCount: 0,
     },
     {
       id: "d3",
-      title: "執行測試",
-      content: "npm test",
-      categoryId: "dev",
+      title: "畫面跑版",
+      content: `畫面顯示有問題
+
+問題：[描述哪裡跑版]
+裝置：[手機/電腦/平板]
+瀏覽器：[Chrome/Safari/其他]
+
+請幫我修復`,
+      categoryId: "debug",
+      isFavorite: false,
+      usageCount: 0,
+    },
+    // 提問模板
+    {
+      id: "p1",
+      title: "解釋這段程式碼",
+      content: `請用簡單的話解釋這段程式碼在做什麼：
+
+[貼上程式碼]
+
+我是新手，請說明得白話一點`,
+      categoryId: "prompt",
+      isFavorite: false,
+      usageCount: 0,
+    },
+    {
+      id: "p2",
+      title: "這樣做對嗎",
+      content: `我想確認一下，[你的理解或做法] 這樣對嗎？
+
+如果不對，正確的做法是什麼？`,
+      categoryId: "prompt",
+      isFavorite: false,
+      usageCount: 0,
+    },
+    {
+      id: "p3",
+      title: "有更好的做法嗎",
+      content: `目前的做法是 [描述現在的做法]
+
+有沒有更好、更簡單的方式？`,
+      categoryId: "prompt",
       isFavorite: false,
       usageCount: 0,
     },
