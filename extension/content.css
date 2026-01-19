@@ -161,31 +161,18 @@
 /* 分類標籤 */
 .cmd-category-tabs {
   display: flex;
-  gap: 6px;
-  padding: 12px 12px 8px 12px;
+  gap: 8px;
+  padding: 12px;
   overflow-x: auto;
   overflow-y: hidden;
   border-bottom: 1px solid #E5E7EB;
-  scrollbar-width: thin;
+  scrollbar-width: none; /* Firefox - 隱藏滾動條但保留功能 */
   -webkit-overflow-scrolling: touch;
+  flex-shrink: 0; /* 防止被壓縮 */
 }
 
 .cmd-category-tabs::-webkit-scrollbar {
-  height: 6px;
-}
-
-.cmd-category-tabs::-webkit-scrollbar-track {
-  background: transparent;
-  margin: 0 8px;
-}
-
-.cmd-category-tabs::-webkit-scrollbar-thumb {
-  background: #D1D5DB;
-  border-radius: 3px;
-}
-
-.cmd-category-tabs::-webkit-scrollbar-thumb:hover {
-  background: #9CA3AF;
+  display: none; /* Chrome - 隱藏滾動條但保留功能 */
 }
 
 .cmd-category-tab {

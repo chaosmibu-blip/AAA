@@ -401,12 +401,13 @@
       saveForm();
     });
 
-    // 監聽 copy 事件 - 自動收集複製的內容
+    // 監聽 copy 事件 - 自動收集複製的內容（不需要開面板）
     document.addEventListener("copy", (e) => {
-      // 如果面板開啟，自動收集複製的內容
-      if (isPanelOpen && !isFormOpen && !isManageMode) {
+      // 不在擴充功能內部操作時才收集
+      const isInExtension = e.target.closest && e.target.closest("#cmd-helper-root");
+      if (!isInExtension && !isFormOpen && !isManageMode) {
         const selectedText = getSelectedText();
-        if (selectedText) {
+        if (selectedText && selectedText.length > 0) {
           autoCollectText(selectedText);
         }
       }
