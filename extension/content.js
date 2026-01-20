@@ -192,13 +192,17 @@
   async function loadCommands() {
     try {
       const result = await chrome.storage.local.get(["commands"]);
+      console.log("[指令小幫手] 載入資料:", result);
       if (result.commands && result.commands.length > 0) {
         commands = result.commands;
+        console.log("[指令小幫手] 已載入", commands.length, "個指令");
       } else {
         commands = DEFAULT_COMMANDS;
         await saveCommands();
+        console.log("[指令小幫手] 使用預設指令");
       }
     } catch (e) {
+      console.error("[指令小幫手] 載入失敗:", e);
       commands = DEFAULT_COMMANDS;
     }
     renderCommandList();
@@ -208,8 +212,9 @@
   async function saveCommands() {
     try {
       await chrome.storage.local.set({ commands });
+      console.log("[指令小幫手] 已儲存", commands.length, "個指令");
     } catch (e) {
-      console.error("Failed to save commands:", e);
+      console.error("[指令小幫手] 儲存失敗:", e);
     }
   }
 
@@ -719,7 +724,9 @@
         ` : ''}
         <div class="cmd-item-main">
           <div class="cmd-item-title">
-            ${cmd.isFavorite ? '<span class="star">★</span>' : ""}
+            <button class="cmd-favorite-btn ${cmd.isFavorite ? 'active' : ''}" data-id="${cmd.id}" title="${cmd.isFavorite ? '取消收藏' : '加入收藏'}">
+              ${cmd.isFavorite ? '★' : '☆'}
+            </button>
             ${escapeHtml(cmd.title)}
             ${!isManageMode ? `
               <div class="cmd-item-actions">
@@ -781,6 +788,15 @@
         toggleSelectItem(id);
         const item = checkbox.closest(".cmd-item");
         item.classList.toggle("selected", selectedIds.has(id));
+      });
+    });
+
+    // 綁定收藏按鈕
+    container.querySelectorAll(".cmd-favorite-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.id;
+        toggleFavorite(id);
       });
     });
 
@@ -987,6 +1003,17 @@
     await saveCommands();
     closeForm();
     renderCommandList();
+  }
+
+  // 切換收藏狀態
+  async function toggleFavorite(id) {
+    const cmd = commands.find((c) => c.id === id);
+    if (cmd) {
+      cmd.isFavorite = !cmd.isFavorite;
+      await saveCommands();
+      renderCommandList();
+      showToastMessage(cmd.isFavorite ? "已加入常用" : "已取消常用");
+    }
   }
 
   // 編輯指令

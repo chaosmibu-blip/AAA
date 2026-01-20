@@ -260,9 +260,25 @@
   gap: 6px;
 }
 
-.cmd-item-title .star {
+/* 收藏按鈕 */
+.cmd-favorite-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #D1D5DB;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.15s, transform 0.15s;
+}
+
+.cmd-favorite-btn:hover {
   color: #F59E0B;
-  font-size: 12px;
+  transform: scale(1.2);
+}
+
+.cmd-favorite-btn.active {
+  color: #F59E0B;
 }
 
 .cmd-item-content {
